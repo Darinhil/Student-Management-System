@@ -1,18 +1,14 @@
-import type { Request, Response, NextFunction,} from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt.js';
 
 // Authentication middleware
 export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   try {
-
-    // Get Authorization header
     const authHeader =
       req.headers.authorization ||
-      req.header('Authorization') ||
-      (req.header('x-access-token') ?? undefined) ||
-      (req.header('x-auth-token') ?? undefined);
+      req.header('x-access-token') ||
+      req.header('x-auth-token');
 
-    // Check if header exists
     if (!authHeader) {
       res.status(401).json({
         success: false,
@@ -21,13 +17,15 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
       return;
     }
 
-    // Accept either:
-    // - "Bearer <token>" (recommended)
-    // - "<token>" (fallback for simple clients)
+    // Accept "Bearer <token>" or a bare token
     const parts = authHeader.trim().split(/\s+/);
-    const scheme = parts[0]?.toLowerCase().replace(/:$/, '');
+    const scheme = parts[0]?.toLowerCase();
     let token =
-      parts.length === 1 ? parts[0] : parts.length === 2 && scheme === 'bearer' ? parts[1] : null;
+      parts.length === 1
+        ? parts[0]
+        : parts.length === 2 && scheme === 'bearer'
+          ? parts[1]
+          : null;
 
     // Strip accidental surrounding quotes: Bearer "<token>"
     if (token) token = token.replace(/^["'](.+)["']$/, '$1');
@@ -40,7 +38,6 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
       return;
     }
 
-    // Verify JWT token
     const payload = verifyToken(token);
 
     if (!payload) {
@@ -51,12 +48,8 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction):
       return;
     }
 
-    // Attach user payload to request
     req.user = payload;
-
-    // Continue
     next();
-
   } catch (error) {
     console.error('Auth Middleware Error:', error);
     res.status(401).json({

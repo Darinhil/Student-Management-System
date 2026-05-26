@@ -9,7 +9,13 @@ export class AuthController extends BaseController {
   // POST /api/auth/register
   async register(req: RegisterRequest, res: Response): Promise<void> {
     await this.handleAsyncError(res, async () => {
-      const { username, email, password, role } = req.body;
+      const body: any = (req as any).body;
+      if (!body || typeof body !== 'object') {
+        this.sendError(res, 'Request body is required (send JSON with Content-Type: application/json)', 400);
+        return;
+      }
+
+      const { username, email, password, role } = body;
 
       const result = await this.authService.register(username!, email!, password!, role);
 
@@ -25,16 +31,30 @@ export class AuthController extends BaseController {
     });
   }
 
-  //  POST /api/auth/login
+  // POST /api/auth/login
   async login(req: LoginRequest, res: Response): Promise<void> {
     await this.handleAsyncError(res, async () => {
-      const { username, email, usernameOrEmail, password } = req.body;
-      const identifier = usernameOrEmail ?? username ?? email;
+      const body: any = (req as any).body;
+      if (!body || typeof body !== 'object') {
+        this.sendError(res, 'Request body is required (send JSON with Content-Type: application/json)', 400);
+        return;
+      }
+
+      const { username, email, password } = body;
+
+      const identifier = username ?? email;
+
       if (!identifier || !password) {
         this.sendError(res, 'Username/email and password are required', 400);
         return;
       }
-      const result = await this.authService.login(identifier, '', password);
+
+      const isEmail = identifier.includes('@');
+      const result = await this.authService.login(
+        isEmail ? undefined : identifier,
+        isEmail ? identifier : undefined,
+        password,
+      );
 
       this.sendSuccess(
         res,
@@ -47,6 +67,7 @@ export class AuthController extends BaseController {
       );
     });
   }
+
   // GET /api/auth/profile
   async getProfile(req: Request, res: Response): Promise<void> {
     await this.handleAsyncError(res, async () => {
@@ -63,7 +84,6 @@ export class AuthController extends BaseController {
   }
 
   // POST /api/auth/logout
-  
   async logout(req: Request, res: Response): Promise<void> {
     await this.handleAsyncError(res, async () => {
       const userId = req.user?.id;
