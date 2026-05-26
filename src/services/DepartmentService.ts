@@ -1,72 +1,132 @@
-import type { createDepartmentDto, updateDepartmentDto } from '../interfaces/department.interface.js';
-import { DepartmentRepository } from '../repositories/DepartmentRepository.js';
-import { Department } from '../models/Department.js';
+import { db } from '../config/database.js';
 
-class DepartmentError extends Error {
-  statusCode: number;
-
-  constructor(statusCode: number, message: string) {
-    super(message);
-    this.statusCode = statusCode;
-  }
-}
+import type {
+  Department,
+  createDepartmentDto,
+  updateDepartmentDto,
+} from '../interfaces/department.interface.js';
 
 export class DepartmentService {
-  private departmentRepository = new DepartmentRepository();
 
+  // GET ALL
   async getAll(): Promise<Department[]> {
-    return this.departmentRepository.getAll();
+    const result = await db.query(
+      `
+      SELECT *
+      FROM departments
+      ORDER BY id ASC
+      `
+    );
+
+    return result.rows;
   }
 
+  // GET BY ID
   async getById(id: number): Promise<Department> {
-    if (!Number.isInteger(id) || id <= 0) {
-      throw new DepartmentError(400, 'Invalid department id');
+
+    const result = await db.query(
+      `
+      SELECT *
+      FROM departments
+      WHERE id = $1
+      `,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      throw new Error('Department not found');
     }
 
-    const department = await this.departmentRepository.getById(id);
-    if (!department) {
-      throw new DepartmentError(404, 'Department not found');
-    }
-
-    return department;
+    return result.rows[0];
   }
 
-  async create(data: createDepartmentDto): Promise<Department> {
-    const name = data.name?.trim();
+  // CREATE
+  async create(
+    data: createDepartmentDto
+  ): Promise<Department> {
+
+    const { name, description } = data;
+
     if (!name) {
-      throw new DepartmentError(400, 'Name is required');
+      throw new Error('Department name is required');
     }
 
-    const exists = await this.departmentRepository.existsByName(name);
-    if (exists) {
-      throw new DepartmentError(409, 'Department with this name already exists');
+    const existing = await db.query(
+      `
+      SELECT id
+      FROM departments
+      WHERE name = $1
+      `,
+      [name.trim()]
+    );
+
+    if (existing.rows.length > 0) {
+      throw new Error('Department already exists');
     }
 
-    const description = data.description?.trim() || null;
-    return this.departmentRepository.create({ name, description });
+    const result = await db.query(
+      `
+      INSERT INTO departments (
+        name,
+        description
+      )
+      VALUES ($1, $2)
+      RETURNING *
+      `,
+      [
+        name.trim(),
+        description || null,
+      ]
+    );
+
+    return result.rows[0];
   }
 
-  async update(id: number, data: updateDepartmentDto): Promise<Department> {
-    const existing = await this.getById(id);
+  // UPDATE
+  async update(
+    id: number,
+    data: updateDepartmentDto
+  ): Promise<Department> {
 
-    const name = data.name !== undefined ? data.name.trim() : existing.name;
-    if (!name) {
-      throw new DepartmentError(400, 'Name is required');
-    }
+    const department = await this.getById(id);
 
-    const exists = await this.departmentRepository.existsByName(name, id);
-    if (exists) {
-      throw new DepartmentError(409, 'Department with this name already exists');
-    }
+    const updatedName =
+      data.name || department.name;
 
-    const description =
-      data.description !== undefined ? (data.description?.trim() || null) : existing.description ?? null;
+    const updatedDescription =
+      data.description || department.description;
 
-    return this.departmentRepository.update(id, { name, description });
+    const result = await db.query(
+      `
+      UPDATE departments
+      SET
+        name = $1,
+        description = $2,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $3
+      RETURNING *
+      `,
+      [
+        updatedName,
+        updatedDescription,
+        id,
+      ]
+    );
+
+    return result.rows[0];
   }
 
+  // DELETE
   async delete(id: number): Promise<void> {
+
     await this.getById(id);
-    await this.departmentRepository.delete(id);
+
+    await db.query(
+      `
+      DELETE FROM departments
+      WHERE id = $1
+      `,
+      [id]
+    );
   }
 }

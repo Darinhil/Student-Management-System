@@ -1,6 +1,6 @@
 import bcryptjs from 'bcryptjs';
 import { db } from '../config/database.js';
-import { generateToken} from '../utils/jwt.js';
+import { generateToken } from '../utils/jwt.js';
 
 export interface UserData {
   id: number;
@@ -9,7 +9,7 @@ export interface UserData {
   role: string;
 }
 
-export interface JwtPayload{
+export interface JwtPayload {
   id: number;
   username: string;
   email: string;
@@ -24,9 +24,13 @@ export interface AuthResponse {
 
 export class AuthService {
 
-  //  Register a new user
-  async register(username: string, email: string, password: string, role: string = 'student'): Promise<AuthResponse> {
-    // Validation
+  // Register a new user
+  async register(
+    username: string,
+    email: string,
+    password: string,
+    role: string = 'student',
+  ): Promise<AuthResponse> {
     if (!username || !email || !password) {
       throw new Error('Username, email, and password are required');
     }
@@ -42,12 +46,10 @@ export class AuthService {
     if (password.length < 8) {
       throw new Error('Password must be at least 8 characters');
     }
-    
-    // Normalize inputs
+
     const normalizedUsername = username.trim().toLowerCase();
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Check if user already exists
     const existingUser = await db.query(
       'SELECT id FROM users WHERE username = $1 OR email = $2',
       [normalizedUsername, normalizedEmail],
@@ -57,10 +59,8 @@ export class AuthService {
       throw new Error('Username or email already exists');
     }
 
-    // Hash password
     const hashedPassword = await bcryptjs.hash(password, 10);
 
-    // Insert user
     const result = await db.query(
       `INSERT INTO users (username, email, password, role)
        VALUES ($1, $2, $3, $4)
@@ -70,7 +70,6 @@ export class AuthService {
 
     const user = result.rows[0] as UserData;
 
-    // Generate token
     const token = generateToken({
       id: user.id,
       username: user.username,
@@ -78,32 +77,28 @@ export class AuthService {
       role: user.role,
     });
 
-    return {
-      user,
-      token,
-    };
+    return { user, token };
   }
 
-  /**
-   * Login user
-   */
-  async login(username? :string, email? : string, password?: string): Promise<AuthResponse> {
-    
-    // Validation
-
+  // Login user
+  async login(username?: string, email?: string, password?: string): Promise<AuthResponse> {
     if ((!username && !email) || !password) {
       throw new Error('Username/Email and password are required');
     }
 
-    const normalizedInput = (username || email || '').trim().toLowerCase();
+    const normalizedUsername = username?.trim().toLowerCase() ?? null;
+    const normalizedEmail = email?.trim().toLowerCase() ?? null;
 
-    // Find user
-    const result = await db.query(
-      `SELECT id, username, email, password, role
-       FROM users
-       WHERE username = $1 OR email = $1`,
-      [normalizedInput],
-    );
+    // Use separate queries to avoid unintended OR matches when only one identifier is provided
+    const result = normalizedEmail
+      ? await db.query(
+          'SELECT id, username, email, password, role FROM users WHERE email = $1',
+          [normalizedEmail],
+        )
+      : await db.query(
+          'SELECT id, username, email, password, role FROM users WHERE username = $1',
+          [normalizedUsername],
+        );
 
     const user = result.rows[0];
 
@@ -111,14 +106,12 @@ export class AuthService {
       throw new Error('Invalid credentials');
     }
 
-    // Verify password
     const isPasswordValid = await bcryptjs.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new Error('Invalid credentials');
     }
 
-    // Generate token
     const token = generateToken({
       id: user.id,
       username: user.username,
@@ -126,7 +119,6 @@ export class AuthService {
       role: user.role,
     });
 
-    // Remove password 
     const { password: _, ...userWithoutPassword } = user;
 
     return {
@@ -135,17 +127,16 @@ export class AuthService {
     };
   }
 
-  /**
-   * Get user profile by ID
-   */
+  // Get user profile by ID
   async getProfile(userId: number): Promise<UserData> {
     if (!userId || userId <= 0) {
       throw new Error('Invalid user ID');
     }
 
-    const result = await db.query('SELECT id, username, email, role FROM users WHERE id = $1', [
-      userId,
-    ]);
+    const result = await db.query(
+      'SELECT id, username, email, role FROM users WHERE id = $1',
+      [userId],
+    );
 
     if (result.rows.length === 0) {
       throw new Error('User not found');
@@ -154,21 +145,13 @@ export class AuthService {
     return result.rows[0] as UserData;
   }
 
-  /**
-   * Logout (invalidate token on client side)
-   */
+  // Logout (token invalidation handled client-side)
   async logout(userId: number): Promise<void> {
-    // Verify user exists
     const result = await db.query('SELECT id FROM users WHERE id = $1', [userId]);
 
     if (result.rows.length === 0) {
       throw new Error('User not found');
     }
 
-    // In a real application, you might want to:
-    // 1. Add token to a blacklist
-    // 2. Update a last_logout timestamp
-    // 3. Revoke refresh tokens
-    // For now, we just confirm the user exists
   }
 }
