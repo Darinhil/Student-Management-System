@@ -11,7 +11,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
-app.use('/api/auth', departmentRoutes);
+app.use('/api/departments', departmentRoutes);
 app.use((req: Request, res: Response) => {
   logger.warn(`404 Not Found: ${req.method} ${req.path}`);
   res.status(404).json({

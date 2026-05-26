@@ -5,14 +5,12 @@ import { authMiddleware } from "../middlewares/authMiddleware.js";
 const router = Router()
 const departmentController = new DepartmentController();
 
-// Public routes (read only)
-router.get('/departments', departmentController.getAll.bind(departmentController));
-router.get('/departments/:id', departmentController.getById.bind(departmentController));
-
-// Protected routes (write operations)
-router.post('/departments', authMiddleware, departmentController.create.bind(departmentController));
-router.put('/departments/:id', authMiddleware, departmentController.update.bind(departmentController));
-router.delete('/departments/:id', authMiddleware, departmentController.delete.bind(departmentController));
+// Routes
+router.get('/', departmentController.getAll.bind(departmentController));
+router.get('/:id', departmentController.getById.bind(departmentController));
+router.post('/', departmentController.create.bind(departmentController));
+router.put('/:id', departmentController.update.bind(departmentController));
+router.delete('/:id', departmentController.delete.bind(departmentController));
 
 export default router;
 
