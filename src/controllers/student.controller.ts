@@ -1,6 +1,4 @@
 import { StudentService } from '../services/students.services.js';
-import type { CreateStudentDto, UpdateStudentDto } from '../interfaces/student.interfaces.js';
-
 export class StudentController {
   private studentService: StudentService;
 
