@@ -1,7 +1,7 @@
 import express from 'express';
 import studentRoutes from './routes/student.routes.ts';
 import { StudentRepository } from './repositories/student.repository.ts';
-
+import enrollmentRoutes from './routes/enrollment.route.ts';
 const app = express();
 
 // Middleware
@@ -22,7 +22,7 @@ initDB();
 
 // Routes
 app.use('/api/students', studentRoutes);
-
+app.use('/api/enrollments', enrollmentRoutes);
 // Health Check
 app.get('/', (req, res) => {
   res.json({ 
