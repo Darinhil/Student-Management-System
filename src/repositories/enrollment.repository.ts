@@ -1,6 +1,6 @@
 import pool from '../config/database.js';
 import { EnrollmentModel } from '../models/enrollment.medel.js';
-import { CreateEnrollmentDto } from '../interfaces/enrollment.interface.js';
+import type { CreateEnrollmentDto } from '../interfaces/enrollment.interface.js';
 
 export class EnrollmentRepository {
 
@@ -64,6 +64,6 @@ export class EnrollmentRepository {
 
   async delete(id: number): Promise<boolean> {
     const result = await pool.query('DELETE FROM enrollments WHERE id = $1 RETURNING id', [id]);
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 }

@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import { Student, CreateStudentDto, UpdateStudentDto } from '../interfaces/student.interfaces.js';
+import type { Student, CreateStudentDto, UpdateStudentDto } from '../interfaces/student.interfaces.js';
 
 export class StudentRepository {
 
@@ -60,7 +60,7 @@ export class StudentRepository {
 
   async delete(id: number): Promise<boolean> {
     const result = await pool.query('DELETE FROM students WHERE id = $1 RETURNING id', [id]);
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async searchByName(name: string): Promise<Student[]> {

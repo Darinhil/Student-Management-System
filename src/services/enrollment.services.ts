@@ -1,5 +1,5 @@
 import { EnrollmentRepository } from '../repositories/enrollment.repository.js';
-import { CreateEnrollmentDto } from '../interfaces/enrollment.interface.js';
+import type { CreateEnrollmentDto } from '../interfaces/enrollment.interface.js';
 import { EnrollmentModel } from '../models/enrollment.medel.js';
 
 export class EnrollmentService {

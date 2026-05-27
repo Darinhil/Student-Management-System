@@ -1,5 +1,5 @@
 import { StudentRepository } from '../repositories/student.repository.js';
-import { Student, CreateStudentDto, UpdateStudentDto } from '../interfaces/student.interfaces.js';
+import type { Student, CreateStudentDto, UpdateStudentDto } from '../interfaces/student.interfaces.js';
 
 export class StudentService {
   private repository: StudentRepository;

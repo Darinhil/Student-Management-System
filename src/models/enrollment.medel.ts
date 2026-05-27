@@ -1,4 +1,4 @@
-import { Enrollment } from '../interfaces/enrollment.interface.js';
+import type { Enrollment } from '../interfaces/enrollment.interface.js';
 
 export class EnrollmentModel implements Enrollment {
   id: number;
