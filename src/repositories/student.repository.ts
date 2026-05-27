@@ -1,5 +1,5 @@
-import pool from '../config/database.ts';
-import { Student, CreateStudentDto, UpdateStudentDto } from '../interfaces/student.interfaces.ts';
+import pool from '../config/database.js';
+import { Student, CreateStudentDto, UpdateStudentDto } from '../interfaces/student.interfaces.js';
 
 export class StudentRepository {
 

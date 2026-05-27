@@ -1,5 +1,5 @@
-import { EnrollmentService } from '../services/enrollment.services.ts';
-import { CreateEnrollmentDto } from '../interfaces/enrollment.interface.ts';
+import { EnrollmentService } from '../services/enrollment.services.js';
+import { CreateEnrollmentDto } from '../interfaces/enrollment.interface.js';
 
 export class EnrollmentController {
   private enrollmentService: EnrollmentService;

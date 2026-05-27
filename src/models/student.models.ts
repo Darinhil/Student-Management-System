@@ -1,4 +1,4 @@
-import { Student } from '../interfaces/student.interfaces.ts';
+import { Student } from '../interfaces/student.interfaces.js';
 
 export class StudentModel implements Student {
   id: number;

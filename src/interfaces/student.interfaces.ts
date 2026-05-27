@@ -15,7 +15,7 @@ export interface CreateStudentDto {
   department_id?: number | null;
 }
 
-export interface UpdateStudentDto {
+export  interface UpdateStudentDto {
   first_name?: string;
   last_name?: string;
   department_id?: number | null;

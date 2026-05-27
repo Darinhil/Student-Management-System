@@ -1,6 +1,6 @@
-import { EnrollmentRepository } from '../repositories/enrollment.repository.ts';
-import { CreateEnrollmentDto } from '../interfaces/enrollment.interface.ts';
-import { EnrollmentModel } from '../models/enrollment.medel.ts';
+import { EnrollmentRepository } from '../repositories/enrollment.repository.js';
+import { CreateEnrollmentDto } from '../interfaces/enrollment.interface.js';
+import { EnrollmentModel } from '../models/enrollment.medel.js';
 
 export class EnrollmentService {
   private repository: EnrollmentRepository;

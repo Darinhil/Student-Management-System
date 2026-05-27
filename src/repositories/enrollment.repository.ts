@@ -1,6 +1,6 @@
-import pool from '../config/database.ts';
-import { EnrollmentModel } from '../models/enrollment.medel.ts';
-import { CreateEnrollmentDto } from '../interfaces/enrollment.interface.ts';
+import pool from '../config/database.js';
+import { EnrollmentModel } from '../models/enrollment.medel.js';
+import { CreateEnrollmentDto } from '../interfaces/enrollment.interface.js';
 
 export class EnrollmentRepository {
 
