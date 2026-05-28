@@ -1,40 +1,45 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
-import { DepartmentController } from '../controllers/DepartmentController.js';
+import { TeacherController } from '../controllers/TeacherController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { roleMiddleware } from '../middlewares/roleMiddleware.js';
 
 const router = Router();
-const departmentController = new DepartmentController();
+const teacherController = new TeacherController();
 
 /**
- * Department Routes
+ * Teacher Routes
  * Protected routes - require authentication
  */
 
-// Get all departments
+// Get all teachers
 router.get('/', authMiddleware, (req: Request, res: Response) =>
-  departmentController.getAllDepartments(req, res)
+  teacherController.getAllTeachers(req, res)
 );
 
-// Get department by ID
+// Get teacher by ID
 router.get('/:id', authMiddleware, (req: Request, res: Response) =>
-  departmentController.getDepartmentById(req, res)
+  teacherController.getTeacherById(req, res)
 );
 
-// Create new department (admin only)
+// Get teachers by department
+router.get('/department/:deptId', authMiddleware, (req: Request, res: Response) =>
+  teacherController.getTeachersByDepartment(req, res)
+);
+
+// Create new teacher (admin only)
 router.post('/', authMiddleware, roleMiddleware(['admin']), (req: Request, res: Response) =>
-  departmentController.createDepartment(req, res)
+  teacherController.createTeacher(req, res)
 );
 
-// Update department (admin only)
+// Update teacher (admin only)
 router.put('/:id', authMiddleware, roleMiddleware(['admin']), (req: Request, res: Response) =>
-  departmentController.updateDepartment(req, res)
+  teacherController.updateTeacher(req, res)
 );
 
-// Delete department (admin only)
+// Delete teacher (admin only) - Note: uses /v1/ in your spec
 router.delete('/:id', authMiddleware, roleMiddleware(['admin']), (req: Request, res: Response) =>
-  departmentController.deleteDepartment(req, res)
+  teacherController.deleteTeacher(req, res)
 );
 
 export default router;

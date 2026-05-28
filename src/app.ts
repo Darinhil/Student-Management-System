@@ -8,6 +8,7 @@ import {
   courseRoutes,
   departmentRoutes,
   attendanceRoutes,
+  teacherRoutes,
 } from './routes/index.js';
 
 export const app: Application = express();
@@ -31,6 +32,9 @@ app.use('/api/students', studentRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/teachers', teacherRoutes);
+// DELETE endpoint uses /v1/ as per specification
+app.use('/v1/teachers', teacherRoutes);
 
 app.use((req: Request, res: Response) => {
   logger.warn(`404 Not Found: ${req.method} ${req.path}`);

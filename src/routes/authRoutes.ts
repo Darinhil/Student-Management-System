@@ -1,4 +1,5 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
 import { AuthController } from '../controllers/AuthController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 
