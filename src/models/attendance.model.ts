@@ -1,4 +1,4 @@
-import { Attendance } from '../interfaces/attendance.interfaces.ts';
+import type { Attendance } from '../interfaces/attendance.interfaces.js';
 
 export class AttendanceModel implements Attendance {
   id: number;

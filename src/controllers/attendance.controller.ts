@@ -1,5 +1,5 @@
-import { AttendanceService } from '../services/attendance.services.ts';
-import { CreateAttendanceDto, UpdateAttendanceDto } from '../interfaces/attendance.interfaces.ts';
+import { AttendanceService } from '../services/attendance.services.js';
+import type { CreateAttendanceDto, UpdateAttendanceDto } from '../interfaces/attendance.interfaces.js';
 
 export class AttendanceController {
   private attendanceService: AttendanceService;

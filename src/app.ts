@@ -1,8 +1,16 @@
 import express from 'express';
-import studentRoutes from './routes/student.routes.ts';
-import attendanceRoutes from './routes/attendance.routes.ts';
-import { AttendanceRepository } from './repositories/attendance.repository.ts';
 
+
+import studentRoutes from './routes/student.routes.js';
+import { StudentRepository } from './repositories/student.repository.js';
+import { AttendanceRepository } from './repositories/attendance.repository.js';
+import enrollmentRoutes from './routes/enrollment.route.js';
+import gradeRoutes from './routes/grade.routes.js';
+import type { Request, Response } from 'express';
+import logger from './utils/logger.js';
+import { errorMiddleware } from './middlewares/errorMiddleware.js';
+import { authRoutes, departmentRoutes } from './routes/index.js';
+import attendanceRoutes from './routes/attendance.route.js';
 const app = express();
 
 app.use(express.json());
@@ -14,19 +22,45 @@ const initDB = async () => {
     const attendanceRepo = new AttendanceRepository();
     await attendanceRepo.createTableIfNotExists();
     console.log('✅ Database initialized');
+// Initialize Database Tables
+const initDB = async () => {
+  try {
+    const studentRepo = new StudentRepository();
+    await studentRepo.createTableIfNotExists();
+
+    const attendanceRepo = new AttendanceRepository();
+    await attendanceRepo.createTableIfNotExists();
   } catch (error) {
     console.error('Database init error:', error);
   }
 };
 
 initDB();
-
-// Routes
-app.use('/api/students', studentRoutes);
 app.use('/api/attendances', attendanceRoutes);
-
 app.get('/', (req, res) => {
-  res.json({ message: '✅ Server is running!' });
+  res.json({
+    message: '✅ Server is running!',
+    available_routes: ['/api/students', '/api/enrollments', '/api/attendances']
+  });
 });
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/departments', departmentRoutes);
+app.use('/api/grades', gradeRoutes)
+app.use((req: Request, res: Response) => {
+  logger.warn(`404 Not Found: ${req.method} ${req.path}`);
+  res.status(404).json({
+    success: false,
+    message: 'Users not found',
+    path: req.path,
+  });
+});
+
+  }
+}
+app.use(errorMiddleware);
 
 export default app;

@@ -1,5 +1,6 @@
-import { AttendanceRepository } from '../repositories/attendance.repository.ts';
-import { Attendance, CreateAttendanceDto, UpdateAttendanceDto } from '../interfaces/attendance.interfaces.ts';
+
+import { AttendanceRepository } from '../repositories/attendance.repository.js';
+import type { Attendance, CreateAttendanceDto, UpdateAttendanceDto } from '../interfaces/attendance.interface.js';
 
 export class AttendanceService {
   private repository: AttendanceRepository;
