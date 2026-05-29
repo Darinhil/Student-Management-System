@@ -1,20 +1,21 @@
 import express from 'express';
 import studentRoutes from './routes/student.routes.ts';
-import { StudentRepository } from './repositories/student.repository.ts';
+import attendanceRoutes from './routes/attendance.routes.ts';
+import { AttendanceRepository } from './repositories/attendance.repository.ts';
 
 const app = express();
 
-// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Initialize Database Table
+// Initialize Tables
 const initDB = async () => {
   try {
-    const repo = new StudentRepository();
-    await repo.createTableIfNotExists();
+    const attendanceRepo = new AttendanceRepository();
+    await attendanceRepo.createTableIfNotExists();
+    console.log('✅ Database initialized');
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error('Database init error:', error);
   }
 };
 
@@ -22,16 +23,10 @@ initDB();
 
 // Routes
 app.use('/api/students', studentRoutes);
+app.use('/api/attendances', attendanceRoutes);
 
-// Health Check
 app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Server is running successfully!',
-    database: 'PostgreSQL',
-    endpoints: {
-      getAllStudents: 'GET /api/students'
-    }
-  });
+  res.json({ message: '✅ Server is running!' });
 });
 
 export default app;
