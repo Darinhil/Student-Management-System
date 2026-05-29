@@ -1,5 +1,4 @@
 
-
 import app from './app.js';
 import pool from './config/database.js';
 
