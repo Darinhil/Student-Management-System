@@ -1,6 +1,4 @@
 import express from 'express';
-
-
 import studentRoutes from './routes/student.routes.js';
 import { StudentRepository } from './repositories/student.repository.js';
 import { AttendanceRepository } from './repositories/attendance.repository.js';
@@ -10,19 +8,11 @@ import type { Request, Response } from 'express';
 import logger from './utils/logger.js';
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
 import { authRoutes, departmentRoutes } from './routes/index.js';
-import attendanceRoutes from './routes/attendance.route.js';
+import attendanceRoutes from './routes/attendance.routes.js';
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Initialize Tables
-const initDB = async () => {
-  try {
-    const attendanceRepo = new AttendanceRepository();
-    await attendanceRepo.createTableIfNotExists();
-    console.log('✅ Database initialized');
-// Initialize Database Tables
 const initDB = async () => {
   try {
     const studentRepo = new StudentRepository();
@@ -59,8 +49,7 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-  }
-}
+
 app.use(errorMiddleware);
 
 export default app;

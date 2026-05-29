@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import type { Attendance, CreateAttendanceDto, UpdateAttendanceDto } from '../interfaces/attendance.interface.js';
+import type { Attendance, CreateAttendanceDto, UpdateAttendanceDto } from '../interfaces/attendance.interfaces.ts';
 
 export class AttendanceRepository {
 

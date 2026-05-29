@@ -1,35 +1,6 @@
 import { db } from '../config/database.js';
 import { Department } from '../models/Department.js';
-import pool from '../config/database.js';
 export class DepartmentRepository {
-    async createTableIfNotExists() {
-        try {
-            await pool.query(`
-        CREATE TABLE IF NOT EXISTS departments (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR(100) NOT NULL,
-          description TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
-            await pool.query(`
-        DO $$
-        BEGIN
-          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='departments' AND column_name='created_at') THEN
-            ALTER TABLE departments ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-          END IF;
-          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='departments' AND column_name='updated_at') THEN
-            ALTER TABLE departments ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-          END IF;
-        END $$;
-      `);
-            console.log('✅ Departments table is ready');
-        }
-        catch (error) {
-            console.error('❌ Error creating departments table:', error);
-        }
-    }
     async getAll() {
         const result = await db.query('SELECT id, name, description, created_at AS "createdAt", updated_at AS "updatedAt" FROM departments ORDER BY id ASC');
         return result.rows.map((row) => new Department(row));

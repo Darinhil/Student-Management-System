@@ -1,126 +1,77 @@
 import { AttendanceService } from '../services/attendance.services.js';
 export class AttendanceController {
-    attendanceService = new AttendanceService();
-    createAttendance = async (req, res) => {
+    attendanceService;
+    constructor() {
+        this.attendanceService = new AttendanceService();
+    }
+    async create(req, res) {
         try {
             const data = req.body;
-            if (!data.student_id || !data.course_id || !data.date) {
-                return res.status(400).json({ success: false, message: 'student_id, course_id, and date are required' });
-            }
-            const allowed = ['present', 'absent', 'late'];
-            if (data.status && !allowed.includes(data.status)) {
-                return res.status(400).json({ success: false, message: `Invalid status. Allowed values: ${allowed.join(', ')}` });
-            }
             const attendance = await this.attendanceService.createAttendance(data);
-            res.status(201).json({ success: true, data: attendance });
+            res.status(201).json({ success: true, message: 'Attendance recorded', data: attendance });
         }
         catch (error) {
-            res.status(500).json({
-                success: false,
-                message: "Error creating attendance",
-                error: error.message
-            });
+            res.status(500).json({ success: false, message: 'Error recording attendance', error: error.message });
         }
-    };
-    getAllAttendances = async (_req, res) => {
+    }
+    async getAll(req, res) {
         try {
             const attendances = await this.attendanceService.getAllAttendances();
-            res.status(200).json({
-                success: true,
-                data: attendances
-            });
+            res.status(200).json({ success: true, count: attendances.length, data: attendances });
         }
         catch (error) {
-            res.status(500).json({
-                success: false,
-                message: "Error fetching attendances",
-                error: error.message
-            });
+            res.status(500).json({ success: false, message: 'Error fetching attendances', error: error.message });
         }
-    };
-    getAttendanceByStudent = async (req, res) => {
+    }
+    async getByStudent(req, res) {
         try {
-            const studentId = Number(req.params.studentId);
-            if (isNaN(studentId)) {
+            const studentId = parseInt(req.params.studentId);
+            if (isNaN(studentId))
                 return res.status(400).json({ success: false, message: 'Invalid student ID' });
-            }
-            const attendances = await this.attendanceService.getAttendanceByStudent(studentId);
-            res.status(200).json({
-                success: true,
-                data: attendances
-            });
+            const attendances = await this.attendanceService.getByStudent(studentId);
+            res.status(200).json({ success: true, count: attendances.length, data: attendances });
         }
         catch (error) {
-            res.status(500).json({
-                success: false,
-                message: "Error fetching attendance by student",
-                error: error.message
-            });
+            res.status(500).json({ success: false, message: 'Error fetching attendances', error: error.message });
         }
-    };
-    getAttendanceByCourse = async (req, res) => {
+    }
+    async getByCourse(req, res) {
         try {
-            const courseId = Number(req.params.courseId);
-            if (isNaN(courseId)) {
+            const courseId = parseInt(req.params.courseId);
+            if (isNaN(courseId))
                 return res.status(400).json({ success: false, message: 'Invalid course ID' });
-            }
-            const attendances = await this.attendanceService.getAttendanceByCourse(courseId);
-            res.status(200).json({
-                success: true,
-                data: attendances
-            });
+            const attendances = await this.attendanceService.getByCourse(courseId);
+            res.status(200).json({ success: true, count: attendances.length, data: attendances });
         }
         catch (error) {
-            res.status(500).json({
-                success: false,
-                message: "Error fetching attendance by course",
-                error: error.message
-            });
+            res.status(500).json({ success: false, message: 'Error fetching attendances', error: error.message });
         }
-    };
-    getAttendanceByDate = async (req, res) => {
+    }
+    async getByDate(req, res) {
         try {
             const date = req.query.date;
-            if (!date) {
-                return res.status(400).json({ success: false, message: 'Date query parameter is required' });
-            }
-            const attendances = await this.attendanceService.getAttendanceByDate(date);
-            res.status(200).json({
-                success: true,
-                data: attendances
-            });
+            if (!date)
+                return res.status(400).json({ success: false, message: 'Date query parameter is required (YYYY-MM-DD)' });
+            const attendances = await this.attendanceService.getByDate(date);
+            res.status(200).json({ success: true, count: attendances.length, data: attendances });
         }
         catch (error) {
-            res.status(500).json({
-                success: false,
-                message: "Error fetching attendance by date",
-                error: error.message
-            });
+            res.status(500).json({ success: false, message: 'Error fetching attendances', error: error.message });
         }
-    };
-    updateAttendance = async (req, res) => {
+    }
+    async update(req, res) {
         try {
-            const id = Number(req.params.id);
-            if (isNaN(id)) {
-                return res.status(400).json({ success: false, message: 'Invalid attendance ID' });
-            }
+            const id = parseInt(req.params.id);
+            if (isNaN(id))
+                return res.status(400).json({ success: false, message: 'Invalid ID' });
             const data = req.body;
-            const allowed = ['present', 'absent', 'late'];
-            if (data.status && !allowed.includes(data.status)) {
-                return res.status(400).json({ success: false, message: `Invalid status. Allowed values: ${allowed.join(', ')}` });
-            }
             const attendance = await this.attendanceService.updateAttendance(id, data);
-            if (!attendance) {
+            if (!attendance)
                 return res.status(404).json({ success: false, message: 'Attendance not found' });
-            }
-            res.status(200).json({ success: true, data: attendance });
+            res.status(200).json({ success: true, message: 'Attendance updated', data: attendance });
         }
         catch (error) {
-            res.status(500).json({
-                success: false,
-                message: "Error updating attendance",
-                error: error.message
-            });
+            res.status(500).json({ success: false, message: 'Error updating attendance', error: error.message });
         }
-    };
+    }
 }

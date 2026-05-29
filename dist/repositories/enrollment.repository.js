@@ -59,40 +59,4 @@ export class EnrollmentRepository {
         const result = await pool.query('DELETE FROM enrollments WHERE id = $1 RETURNING id', [id]);
         return (result.rowCount ?? 0) > 0;
     }
-    async createTableIfNotExists() {
-        try {
-            await pool.query(`
-        CREATE TABLE IF NOT EXISTS enrollments (
-          id SERIAL PRIMARY KEY,
-          student_id INT NOT NULL,
-          course_id INT NOT NULL,
-          enrollment_date DATE DEFAULT CURRENT_DATE,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-          CONSTRAINT fk_enrollment_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
-          CONSTRAINT fk_enrollment_course FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
-          CONSTRAINT unique_student_course UNIQUE (student_id, course_id)
-        );
-      `);
-            await pool.query(`
-        DO $$
-        BEGIN
-          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='enrollments' AND column_name='enrollment_date') THEN
-            ALTER TABLE enrollments ADD COLUMN enrollment_date DATE DEFAULT CURRENT_DATE;
-          END IF;
-          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='enrollments' AND column_name='created_at') THEN
-            ALTER TABLE enrollments ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-          END IF;
-          IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='enrollments' AND column_name='updated_at') THEN
-            ALTER TABLE enrollments ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-          END IF;
-        END $$;
-      `);
-            console.log('✅ Enrollments table is ready');
-        }
-        catch (error) {
-            console.error('❌ Error creating enrollments table:', error);
-        }
-    }
 }

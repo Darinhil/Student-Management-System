@@ -2,18 +2,24 @@ import pool from '../config/database.js';
 export class AttendanceRepository {
     async findAll() {
         const query = `
-      SELECT id, student_id, course_id, date, status,
-             TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created_at,
-             TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as updated_at
+      SELECT 
+        id, 
+        student_id, 
+        course_id, 
+        status,
+        TO_CHAR(date, 'YYYY-MM-DD') as attendance_date,
+        TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created_at,
+        TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as updated_at
       FROM attendances 
-      ORDER BY date DESC, id DESC
+      ORDER BY id DESC
     `;
         const result = await pool.query(query);
         return result.rows;
     }
     async findByStudentId(studentId) {
         const query = `
-      SELECT id, student_id, course_id, date, status,
+      SELECT id, student_id, course_id, status,
+             TO_CHAR(date, 'YYYY-MM-DD') as attendance_date,
              TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created_at,
              TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as updated_at
       FROM attendances 
@@ -25,7 +31,8 @@ export class AttendanceRepository {
     }
     async findByCourseId(courseId) {
         const query = `
-      SELECT id, student_id, course_id, date, status,
+      SELECT id, student_id, course_id, status,
+             TO_CHAR(date, 'YYYY-MM-DD') as attendance_date,
              TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created_at,
              TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as updated_at
       FROM attendances 
@@ -37,7 +44,8 @@ export class AttendanceRepository {
     }
     async findByDate(date) {
         const query = `
-      SELECT id, student_id, course_id, date, status,
+      SELECT id, student_id, course_id, status,
+             TO_CHAR(date, 'YYYY-MM-DD') as attendance_date,
              TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created_at,
              TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as updated_at
       FROM attendances 
@@ -51,7 +59,8 @@ export class AttendanceRepository {
         const query = `
       INSERT INTO attendances (student_id, course_id, date, status)
       VALUES ($1, $2, $3, $4)
-      RETURNING id, student_id, course_id, date, status,
+      RETURNING id, student_id, course_id, status,
+                TO_CHAR(date, 'YYYY-MM-DD') as attendance_date,
                 TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created_at,
                 TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as updated_at
     `;
@@ -67,13 +76,28 @@ export class AttendanceRepository {
         const query = `
       UPDATE attendances 
       SET status = COALESCE($1, status),
+          student_id = COALESCE($2, student_id),
+          course_id = COALESCE($3, course_id),
+          date = COALESCE($4, date),
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2
-      RETURNING id, student_id, course_id, date, status,
+      WHERE id = $5
+      RETURNING id, student_id, course_id, status,
+                TO_CHAR(date, 'YYYY-MM-DD') as attendance_date,
                 TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created_at,
                 TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as updated_at
     `;
-        const result = await pool.query(query, [data.status, id]);
+        const result = await pool.query(query, [data.status, data.student_id, data.course_id, data.date, id]);
+        return result.rows[0] || null;
+    }
+    async findById(id) {
+        const query = `
+      SELECT id, student_id, course_id, status,
+             TO_CHAR(date, 'YYYY-MM-DD') as attendance_date,
+             TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created_at,
+             TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as updated_at
+      FROM attendances WHERE id = $1
+    `;
+        const result = await pool.query(query, [id]);
         return result.rows[0] || null;
     }
     async createTableIfNotExists() {
@@ -87,10 +111,12 @@ export class AttendanceRepository {
           status VARCHAR(20) DEFAULT 'present',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          
-          CONSTRAINT fk_attendance_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
-          CONSTRAINT fk_attendance_course FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
-          CONSTRAINT unique_student_course_date UNIQUE (student_id, course_id, date)
+          CONSTRAINT fk_attendance_student 
+            FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+          CONSTRAINT fk_attendance_course 
+            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
+          CONSTRAINT unique_student_course_date 
+            UNIQUE (student_id, course_id, date)
         );
       `);
             await pool.query(`
