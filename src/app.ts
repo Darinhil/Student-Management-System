@@ -1,45 +1,43 @@
 import express from 'express';
 import studentRoutes from './routes/student.routes.js';
 import { StudentRepository } from './repositories/student.repository.js';
+import { AttendanceRepository } from './repositories/attendance.repository.js';
 import enrollmentRoutes from './routes/enrollment.route.js';
+import type { Request, Response } from 'express';
+import logger from './utils/logger.js';
+import { errorMiddleware } from './middlewares/errorMiddleware.js';
+import { authRoutes, departmentRoutes } from './routes/index.js';
+import attendanceRoutes from './routes/attendance.route.js';
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Initialize Database Table
+// Initialize Database Tables
 const initDB = async () => {
   try {
-    const repo = new StudentRepository();
-    await repo.createTableIfNotExists();
+    const studentRepo = new StudentRepository();
+    await studentRepo.createTableIfNotExists();
+
+    const attendanceRepo = new AttendanceRepository();
+    await attendanceRepo.createTableIfNotExists();
   } catch (error) {
     console.error('Database initialization error:', error);
   }
 };
 
 initDB();
-
+app.use('/api/attendances', attendanceRoutes);
+app.get('/', (req, res) => {
+  res.json({
+    message: '✅ Server is running!',
+    available_routes: ['/api/students', '/api/enrollments', '/api/attendances']
+  });
+});
 // Routes
 app.use('/api/students', studentRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
-// Health Check
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Server is running successfully!',
-    database: 'PostgreSQL',
-    endpoints: {
-      getAllStudents: 'GET /api/students'
-    }
-  });
-});
-
-
-import type { Request, Response } from 'express';
-import logger from './utils/logger.js';
-import { errorMiddleware } from './middlewares/errorMiddleware.js';
-import { authRoutes, departmentRoutes } from './routes/index.js';
-
 app.use('/api/auth', authRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use((req: Request, res: Response) => {
@@ -50,6 +48,7 @@ app.use((req: Request, res: Response) => {
     path: req.path,
   });
 });
+
 
 app.use(errorMiddleware);
 
